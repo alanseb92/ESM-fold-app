@@ -1,11 +1,12 @@
-# 🎈 ESMFold
+# ESMFold
 
 [*ESMFold*](https://esmatlas.com/about) is an end-to-end single sequence protein structure predictor based on the ESM-2 language model.
 
 ## Demo App
 https://esm-fold-app.streamlit.app/
 
-
+## Instructions
+You must to introduce an entire protein sequence data
 
 ## Further Reading
 For more information, read the following articles:
