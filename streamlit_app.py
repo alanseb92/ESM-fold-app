@@ -15,7 +15,7 @@ def render_mol(pdb):
     pdbview = py3Dmol.view()
     pdbview.addModel(pdb,'pdb')
     pdbview.setStyle({'cartoon':{'color':'spectrum'}})
-    pdbview.setBackgroundColor('white')#('0xeeeeee')
+    pdbview.setBackgroundColor('dark')#('0xeeeeee')
     pdbview.zoomTo()
     pdbview.zoom(2, 800)
     pdbview.spin(True)
