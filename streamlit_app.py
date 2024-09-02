@@ -5,14 +5,14 @@ import py3Dmol
 import requests
 import biotite.structure.io as bsio
 
-# Configurar el ancho completo de la página
+# Set full-width layout
 st.set_page_config(layout='wide')
 
-# Título y descripción en la barra lateral
+# Sidebar title and description
 st.sidebar.title('🧪 🧫🧑‍🔬 ESMFold')
-st.sidebar.write('[*ESMFold*](https://esmatlas.com/about) es un predictor de estructuras proteicas basado en la secuencia única usando el modelo de lenguaje ESM-2. Para más información, lee el [artículo de investigación](https://www.biorxiv.org/content/10.1101/2022.07.20.500902v2) y el [artículo de noticias](https://www.nature.com/articles/d41586-022-03539-1) publicado en *Nature*.')
+st.sidebar.write('[*ESMFold*](https://esmatlas.com/about) is an end-to-end single sequence protein structure predictor based on the ESM-2 language model. For more information, read the [research article](https://www.biorxiv.org/content/10.1101/2022.07.20.500902v2) and the [news article](https://www.nature.com/articles/d41586-022-03539-1) published in *Nature*.')
 
-# Función para renderizar la estructura proteica
+# Function to render the protein structure
 def render_mol(pdb):
     pdbview = py3Dmol.view()
     pdbview.addModel(pdb, 'pdb')
@@ -23,47 +23,47 @@ def render_mol(pdb):
     pdbview.spin(True)
     showmol(pdbview, height=500, width=800)
 
-# Entrada de la secuencia proteica
+# Protein sequence input
 DEFAULT_SEQ = "MGSSHHHHHHSSGLVPRGSHMRGPNPTAASLEASAGPFTVRSFTVSRPSGYGAGTVYYPTNAGGTVGAIAIVPGYTARQSSIKWWGPRLASHGFVVITIDTNSTLDQPSSRSSQQMAALRQVASLNGTSSSPIYGKVDTARMGVMGWSMGGGGSLISAANNPSLKAAAPQAPWDSSTNFSSVTVPTLIFACENDSIAPVNSSALPIYDSMSRNAKQFLEINGGSHSCANSGNSNQALIGKKGVAWMKRFMDNDTRYSTFACENPNSTRVSDFRTANCSLEDPAANKARKEAELAAATAEQ"
-txt = st.sidebar.text_area('Secuencia proteica', DEFAULT_SEQ, height=275)
+txt = st.sidebar.text_area('Protein sequence', DEFAULT_SEQ, height=275)
 
-# Función de actualización (ESMFold)
+# ESMFold update function
 def update(sequence):
     try:
-        with st.spinner('🔄 Procesando predicción, por favor espera...'):
+        with st.spinner('🔄 Processing prediction, please wait...'):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
             response = requests.post('https://api.esmatlas.com/foldSequence/v1/pdb/', headers=headers, data=sequence, verify=False)
-            response.raise_for_status()  # Para manejar errores HTTP
+            response.raise_for_status()  # To handle HTTP errors
             pdb_string = response.content.decode('utf-8')
 
             struct = bsio.load_structure(pdb_string, extra_fields=["b_factor"])
             b_value = round(struct.b_factor.mean(), 4)
 
-            # Mostrar la estructura predicha
-            st.subheader('Visualización de la estructura proteica predicha')
+            # Display the predicted structure
+            st.subheader('Visualization of predicted protein structure')
             render_mol(pdb_string)
 
-            # Mostrar el valor de plDDT
+            # Display plDDT value
             st.subheader('plDDT')
-            st.write('plDDT es una estimación por residuo de la confianza en la predicción en una escala de 0 a 100.')
+            st.write('plDDT is a per-residue estimate of the confidence in prediction on a scale from 0 to 100.')
             st.info(f'plDDT: {b_value}')
 
-            # Botón para descargar el archivo PDB
+            # Button to download the PDB file
             st.download_button(
-                label="Descargar PDB",
+                label="Download PDB",
                 data=pdb_string,
                 file_name='predicted.pdb',
                 mime='text/plain',
             )
     except requests.exceptions.RequestException as e:
-        st.error(f'Error en la predicción: {e}')
+        st.error(f'Prediction error: {e}')
 
-# Botón de predicción
-if st.sidebar.button('Predecir'):
+# Prediction button
+if st.sidebar.button('Predict'):
     update(txt)
 else:
-    st.warning('📚📑🧪 Ingresa una secuencia proteica para realizar la predicción')
+    st.warning('📚📑🧪 Enter protein sequence data to make a prediction')
 
 
