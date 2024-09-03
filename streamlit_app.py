@@ -2,6 +2,7 @@ import streamlit as st
 from stmol import showmol
 import py3Dmol
 import requests
+import biotite.structure.io as bsio
 import biotite.structure.io.pdb as pdb
 import tempfile
 
@@ -39,12 +40,19 @@ def update(sequence):
             pdb_string = response.content.decode('utf-8')
 
             # Use a temporary file to save the PDB content
-            with tempfile.NamedTemporaryFile(suffix=".pdb") as temp_pdb:
+            with tempfile.NamedTemporaryFile(suffix=".pdb", delete=False) as temp_pdb:
                 temp_pdb.write(pdb_string.encode())
                 temp_pdb.flush()  # Ensure the content is written
-                struct = pdb.load_structure(temp_pdb.name, extra_fields=["b_factor"])
 
-            b_value = round(struct.b_factor.mean(), 4)
+                # Load the structure using Biotite
+                struct = pdb.PDBFile.read(temp_pdb.name).get_structure()
+
+            # Calculate the mean b-factor (plDDT)
+            b_factors = struct.b_factor
+            if b_factors is not None:
+                b_value = round(b_factors.mean(), 4)
+            else:
+                b_value = 'N/A'
 
             # Display the predicted structure
             st.subheader('Visualization of predicted protein structure')
@@ -66,9 +74,11 @@ def update(sequence):
         st.error(f'Prediction error: {e}')
     except ValueError as e:
         st.error(f'File format error: {e}')
+    except AttributeError as e:
+        st.error(f'Attribute error: {e}')
 
 # Prediction button
 if st.sidebar.button('Predict'):
     update(txt)
 else:
-    st.warning('📚📑🧪 Enter protein sequence data to make a prediction')
+    st.warning('👈📑🧪 Enter protein sequence data to make a prediction')
